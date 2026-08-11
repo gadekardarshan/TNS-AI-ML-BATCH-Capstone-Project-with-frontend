@@ -10,8 +10,12 @@ import { PatientData, EnsembleResponse, User } from './types';
 import { runEnsemblePrediction, fetchPatientAssessment, fetchCurrentUser } from './api/client';
 
 export const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>({
+    email: 'doctor@hospital.org',
+    full_name: 'Dr. Sarah Jenkins, MD',
+    role: 'Senior Cardiologist',
+  });
+  const [authenticated, setAuthenticated] = useState(true);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'assessment' | 'history'>('dashboard');
 
   const [executing, setExecuting] = useState(false);
