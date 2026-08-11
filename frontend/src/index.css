@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+.risk-badge-low {
+  @apply bg-emerald-100 text-emerald-800 border-emerald-300;
+}
+
+.risk-badge-moderate {
+  @apply bg-amber-100 text-amber-800 border-amber-300;
+}
+
+.risk-badge-high {
+  @apply bg-orange-100 text-orange-800 border-orange-300;
+}
+
+.risk-badge-very-high {
+  @apply bg-red-100 text-red-800 border-red-300;
+}
+
+/* Glassmorphism & custom utility classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
