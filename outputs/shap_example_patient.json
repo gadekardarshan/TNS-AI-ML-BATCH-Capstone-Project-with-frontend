@@ -1,0 +1,33 @@
+{
+  "patient_features": {
+    "age": 55.0,
+    "sex": 1.0,
+    "chest_pain_type": 0.0,
+    "resting_blood_pressure": 112.0,
+    "cholesterol": 282.0,
+    "fasting_blood_sugar": 0.0,
+    "resting_ecg": 0.0,
+    "max_heart_rate": 122.0,
+    "exercise_induced_angina": 0.0,
+    "st_depression": 0.8,
+    "st_slope": 1.0,
+    "num_major_vessels": 0.0,
+    "thalassemia": 2.0
+  },
+  "actual_label": 0,
+  "predicted_probability": 0.5693,
+  "top_3_factors": [
+    {
+      "feature": "max_heart_rate",
+      "shap_value": 0.0829
+    },
+    {
+      "feature": "resting_blood_pressure",
+      "shap_value": -0.0344
+    },
+    {
+      "feature": "chest_pain_type",
+      "shap_value": -0.0314
+    }
+  ]
+}
