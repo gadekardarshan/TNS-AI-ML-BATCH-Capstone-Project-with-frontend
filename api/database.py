@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, Column, String, Integer, DateTime, Text, F
 from sqlalchemy.orm import declarative_base, sessionmaker
 from passlib.context import CryptContext
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 DB_PATH = os.environ.get(
     "DB_PATH",
