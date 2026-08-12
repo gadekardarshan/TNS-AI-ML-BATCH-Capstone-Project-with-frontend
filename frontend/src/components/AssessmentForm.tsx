@@ -52,7 +52,12 @@ export const AssessmentForm: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const parsedValue = name === 'st_depression' ? parseFloat(value) : name === 'patient_ref' ? value : parseInt(value, 10);
+    const parsedValue =
+      name === 'patient_ref' || name === 'patient_name'
+        ? value
+        : name === 'st_depression'
+        ? (value === '' ? '' : parseFloat(value))
+        : (value === '' ? '' : parseInt(value, 10));
 
     setFormData((prev) => ({ ...prev, [name]: parsedValue }));
 
@@ -197,7 +202,7 @@ export const AssessmentForm: React.FC = () => {
                 <input
                   type="text"
                   name="patient_name"
-                  value={formData.patient_name || 'John Doe'}
+                  value={formData.patient_name ?? ''}
                   onChange={handleChange}
                   placeholder="e.g. John Doe"
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold"
