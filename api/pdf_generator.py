@@ -10,6 +10,10 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, KeepTogether
 )
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+india_time = datetime.now(ZoneInfo("Asia/Kolkata"))
 
 
 def generate_patient_pdf_report(
@@ -86,10 +90,22 @@ def generate_patient_pdf_report(
     badge_color = tier_colors.get(risk_tier, colors.HexColor("#6B7280"))
 
     # 1. Header Block
+    patient_name = (
+        assessment_data.get("patient_name")
+        or assessment_data.get("input_summary", {}).get("patient_name")
+        or "John Doe"
+    )
+
     header_data = [
         [
-            Paragraph("<b>ST. JUDE CARDIOVASCULAR CENTER</b><br/>Clinical AI Diagnostic Decision-Support Report", title_style),
-            Paragraph(f"<b>Ref ID:</b> {patient_ref}<br/><b>Date:</b> {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}<br/><b>Facility:</b> Cardiology Unit A", subtitle_style),
+            Paragraph("<b>CARDIOVASCULAR CENTER</b><br/>Clinical AI Diagnostic Decision-Support Report", title_style),
+            Paragraph(
+                f"<b>Patient Name:</b> {patient_name}<br/>"
+                f"<b>Ref ID:</b> {patient_ref}<br/>"
+                f"<b>Date:</b> {india_time.strftime('%Y-%m-%d %H:%M IST')}<br/>"
+                f"<b>Facility:</b> Cardiology Unit A",
+                subtitle_style
+            ),
         ]
     ]
     header_table = Table(header_data, colWidths=[340, 200])

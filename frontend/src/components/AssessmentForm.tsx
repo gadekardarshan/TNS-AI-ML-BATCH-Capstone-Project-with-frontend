@@ -19,6 +19,7 @@ const SAMPLE_PATIENT: PatientData = {
   num_major_vessels: 0,
   thalassemia: 2,
   patient_ref: 'PAT-58M-DEMO',
+  patient_name: 'John Doe',
 };
 
 export const AssessmentForm: React.FC = () => {
@@ -188,7 +189,21 @@ export const AssessmentForm: React.FC = () => {
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">1. Patient Demographics</h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Patient Full Name
+                </label>
+                <input
+                  type="text"
+                  name="patient_name"
+                  value={formData.patient_name || 'John Doe'}
+                  onChange={handleChange}
+                  placeholder="e.g. John Doe"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold"
+                />
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Age (years) <span className="text-red-500">*</span>

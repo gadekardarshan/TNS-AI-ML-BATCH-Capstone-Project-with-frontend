@@ -109,6 +109,7 @@ class PatientData(BaseModel):
     num_major_vessels: int = Field(..., ge=0, le=4, description="Vessels colored by fluoroscopy (0-4)", example=0)
     thalassemia: int = Field(..., ge=0, le=3, description="0 = Normal, 1 = Fixed, 2 = Reversible, 3 = Other", example=2)
     patient_ref: Optional[str] = Field(None, description="Optional custom patient reference code")
+    patient_name: Optional[str] = Field("John Doe", description="Patient full name")
 
 
 class LoginRequest(BaseModel):
@@ -185,6 +186,7 @@ def predict(patient: PatientData):
     try:
         data_dict = patient.dict()
         data_dict.pop("patient_ref", None)
+        data_dict.pop("patient_name", None)
         row = pd.DataFrame([data_dict])[feature_names]
     except KeyError as e:
         raise HTTPException(status_code=400, detail=f"Missing or mismatched feature: {e}")
@@ -212,6 +214,7 @@ def predict_ensemble(patient: PatientData, request: Request, db: Session = Depen
     start_time = time.time()
     data_dict = patient.dict()
     custom_ref = data_dict.pop("patient_ref", None)
+    patient_name = data_dict.pop("patient_name", "John Doe")
     patient_ref = custom_ref if custom_ref else f"PAT-{uuid.uuid4().hex[:6].upper()}"
 
     row_unscaled = pd.DataFrame([data_dict])[feature_names]
@@ -270,6 +273,7 @@ def predict_ensemble(patient: PatientData, request: Request, db: Session = Depen
 
     response_payload = {
         "assessment_id": f"ASM-{uuid.uuid4().hex[:8].upper()}",
+        "patient_name": patient_name,
         "patient_ref": patient_ref,
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "input_summary": data_dict,

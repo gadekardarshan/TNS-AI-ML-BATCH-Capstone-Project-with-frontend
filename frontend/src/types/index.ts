@@ -13,6 +13,7 @@ export interface PatientData {
   num_major_vessels: number;
   thalassemia: number;
   patient_ref?: string;
+  patient_name?: string;
 }
 
 export interface ShapFactor {
@@ -50,6 +51,7 @@ export interface ConsensusResult {
 export interface EnsembleResponse {
   assessment_id: string;
   patient_ref: string;
+  patient_name?: string;
   timestamp: string;
   input_summary: PatientData;
   model_results: ModelResult[];
