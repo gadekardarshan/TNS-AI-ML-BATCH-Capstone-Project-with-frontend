@@ -81,9 +81,15 @@ threshold = artifact["threshold"]
 feature_names = artifact["feature_names"]
 boundaries = artifact["risk_tier_boundaries"]
 
-# Load All 4 Models & Scaler
-trained_models = joblib.load(TRAINED_MODELS_PATH)
-scaler = joblib.load(SCALER_PATH)
+# Load All 4 Models & Scaler (if available)
+try:
+    trained_models = joblib.load(TRAINED_MODELS_PATH)
+    scaler = joblib.load(SCALER_PATH)
+except Exception as e:
+    print(f"[STARTUP WARNING] Optional multi-model files unavailable: {e}. Single-model Random Forest mode active.")
+    trained_models = None
+    scaler = None
+
 shap_explainer = FeatureExplainer(primary_rf_model)
 
 
@@ -133,7 +139,7 @@ def root():
     return {
         "service": "Hospital Heart Disease Diagnostic Dashboard API",
         "model": artifact["model_name"],
-        "available_models": list(trained_models.keys()),
+        "available_models": list(trained_models.keys()) if trained_models else [artifact["model_name"]],
         "decision_threshold": threshold,
         "status": "running",
         "version": "2.0.0",
@@ -209,12 +215,13 @@ def predict_ensemble(patient: PatientData, request: Request, db: Session = Depen
     patient_ref = custom_ref if custom_ref else f"PAT-{uuid.uuid4().hex[:6].upper()}"
 
     row_unscaled = pd.DataFrame([data_dict])[feature_names]
-    row_scaled = pd.DataFrame(scaler.transform(row_unscaled), columns=feature_names)
+    row_scaled = pd.DataFrame(scaler.transform(row_unscaled), columns=feature_names) if scaler is not None else row_unscaled
 
     model_results = []
+    models_dict = trained_models if trained_models else {"Random Forest": primary_rf_model}
 
-    # Run all 4 models with partial-failure try-except handling
-    for m_name, m_obj in trained_models.items():
+    # Run available models with partial-failure try-except handling
+    for m_name, m_obj in models_dict.items():
         try:
             # Scaled vs Unscaled input selection
             use_scaled = (m_name in ["Logistic Regression", "SVM"])

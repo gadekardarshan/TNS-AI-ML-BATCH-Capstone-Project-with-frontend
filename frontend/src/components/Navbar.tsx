@@ -1,94 +1,69 @@
 import React from 'react';
-import { Activity, PlusCircle, History, LayoutDashboard, LogOut, User as UserIcon } from 'lucide-react';
+import { HeartPulse, LayoutDashboard, Stethoscope, BarChart3, PieChart, History, Activity } from 'lucide-react';
 import { User } from '../types';
 
+export type NavTab = 'overview' | 'predict' | 'models' | 'insights' | 'history';
+
 interface NavbarProps {
-  user: User | null;
-  activeTab: 'dashboard' | 'assessment' | 'history';
-  setActiveTab: (tab: 'dashboard' | 'assessment' | 'history') => void;
-  onLogout: () => void;
+  activeTab: NavTab;
+  setActiveTab: (tab: NavTab) => void;
+  user?: User | null;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ user, activeTab, setActiveTab, onLogout }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
+  const navItems: { id: NavTab; label: string; icon: React.FC<{ className?: string }> }[] = [
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'predict', label: 'Predict', icon: Stethoscope },
+    { id: 'models', label: 'Model Comparison', icon: BarChart3 },
+    { id: 'insights', label: 'Dataset Insights', icon: PieChart },
+    { id: 'history', label: 'History', icon: History },
+  ];
+
   return (
-    <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
+    <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo & Title */}
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-              <Activity className="w-6 h-6 text-white" />
+          {/* Logo & Application Title */}
+          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('overview')}>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+              <HeartPulse className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-300 bg-clip-text text-transparent">
-                ST. JUDE CARDIOVASCULAR
+              <span className="font-bold text-base tracking-tight text-white">
+                HEART DISEASE RISK PREDICTION
               </span>
-              <span className="block text-xs text-cyan-400 font-medium tracking-wide uppercase">
-                Clinical AI Diagnostic Suite
+              <span className="block text-[11px] text-cyan-400 font-semibold tracking-wider uppercase">
+                ML Classification & Diagnostic Dashboard
               </span>
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-1">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'dashboard'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-inner'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Overview</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('assessment')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'assessment'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-inner'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>New Assessment</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'history'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-inner'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <History className="w-4 h-4" />
-              <span>Patient History</span>
-            </button>
+          {/* 5 Primary Navigation Tabs */}
+          <nav className="flex items-center space-x-1 overflow-x-auto">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                    isActive
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </nav>
 
-          {/* Physician Profile & Logout */}
-          <div className="flex items-center space-x-4">
-            {user && (
-              <div className="hidden sm:flex items-center space-x-3 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700">
-                <div className="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-xs">
-                  <UserIcon className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <div className="text-xs font-semibold text-slate-200">{user.full_name}</div>
-                  <div className="text-[10px] text-cyan-400 font-medium">{user.role}</div>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={onLogout}
-              className="p-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors"
-              title="Sign Out"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+          {/* System Online Status Badge */}
+          <div className="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-semibold text-emerald-400">
+            <Activity className="w-3.5 h-3.5 animate-pulse" />
+            <span>API Online • RF (0.42 Cutoff)</span>
           </div>
         </div>
       </div>

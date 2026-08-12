@@ -1,211 +1,169 @@
-import React, { useEffect, useState } from 'react';
-import { PlusCircle, Activity, AlertTriangle, ShieldCheck, FileText, ArrowRight, RefreshCw } from 'lucide-react';
-import { fetchPatientsList } from '../api/client';
-import { AssessmentRecord } from '../types';
+import React from 'react';
+import { Database, Cpu, Target, CheckCircle2, ArrowRight, Activity, Award } from 'lucide-react';
+import { EDA_INSIGHTS, MODEL_COMPARISON_METRICS, THRESHOLD_TUNING_DATA } from '../data/projectData';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
-interface DashboardHomeProps {
-  onStartNewAssessment: () => void;
-  onSelectAssessment: (id: string) => void;
+interface OverviewProps {
+  onNavigateToPredict: () => void;
 }
 
-export const DashboardHome: React.FC<DashboardHomeProps> = ({
-  onStartNewAssessment,
-  onSelectAssessment,
-}) => {
-  const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const data = await fetchPatientsList(undefined, undefined, 1);
-      setAssessments(data.assessments || []);
-      setTotal(data.total || 0);
-    } catch (err) {
-      console.error('Failed to load dashboard assessments:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  // Compute Summary Metrics
-  const highRiskCount = assessments.filter(
-    (a) => a.risk_tier === 'High Risk' || a.risk_tier === 'Very High Risk'
-  ).length;
-  const highRiskPct = total > 0 ? Math.round((highRiskCount / assessments.length) * 100) : 0;
-  const avgAgreement =
-    assessments.length > 0
-      ? Math.round(
-          (assessments.reduce((sum, a) => sum + (a.agreement_ratio || 0.75), 0) / assessments.length) * 100
-        )
-      : 85;
-
-  const getRiskBadge = (tier: string) => {
-    switch (tier) {
-      case 'Low Risk':
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">Low Risk</span>;
-      case 'Moderate Risk':
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">Moderate Risk</span>;
-      case 'High Risk':
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-300">High Risk</span>;
-      case 'Very High Risk':
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-300">Very High Risk</span>;
-      default:
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800">Unknown</span>;
-    }
-  };
+export const DashboardHome: React.FC<OverviewProps> = ({ onNavigateToPredict }) => {
+  const rfMetrics = MODEL_COMPARISON_METRICS.find((m) => m.model === 'Random Forest')!;
 
   return (
     <div className="space-y-8">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-950 rounded-2xl p-8 text-white shadow-xl border border-slate-700/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 mb-3">
-            Cardiology Unit Clinical Workspace
+      {/* Hero Welcome Banner */}
+      <div className="bg-slate-900 text-white rounded-2xl p-8 shadow-xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="space-y-2">
+          <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <Activity className="w-3.5 h-3.5" />
+            <span>Supervised ML Classification Project</span>
           </span>
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            Heart Disease Diagnostic Decision Dashboard
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Heart Disease Detection & Analytics Platform
           </h1>
-          <p className="mt-2 text-sm text-slate-300 max-w-2xl">
-            Real-time multi-model ensemble classification (Decision Tree, Random Forest, Logistic Regression, SVM) paired with an automated ROC-AUC validation layer and SHAP explainability.
+          <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
+            Predict patient heart disease risk using clinical test features. Powered by a Random Forest model tuned to a recall-optimized decision threshold of 0.42.
           </p>
         </div>
+
         <button
-          onClick={onStartNewAssessment}
-          className="flex items-center space-x-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/30 transition-all hover:scale-[1.02] flex-shrink-0"
+          onClick={onNavigateToPredict}
+          className="flex items-center space-x-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 transition-all hover:scale-[1.02] flex-shrink-0"
         >
-          <PlusCircle className="w-5 h-5" />
-          <span>New Patient Assessment</span>
+          <span>Start Patient Assessment</span>
+          <ArrowRight className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Metric Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Patient Assessments</p>
-            <p className="text-3xl font-extrabold text-slate-900 mt-1">{total}</p>
-            <p className="text-xs text-slate-500 mt-1">Archived in database</p>
+      {/* KPI Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider">Dataset Records</span>
+            <Database className="w-4 h-4 text-cyan-600" />
           </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-            <Activity className="w-6 h-6" />
-          </div>
+          <p className="text-2xl font-extrabold text-slate-900">{EDA_INSIGHTS.n_records}</p>
+          <p className="text-xs text-slate-500 font-medium">13 Features + 1 Target</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Flagged High / Very High Risk</p>
-            <p className="text-3xl font-extrabold text-orange-600 mt-1">{highRiskPct}%</p>
-            <p className="text-xs text-slate-500 mt-1">{highRiskCount} patients flagged</p>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider">Deployed Model</span>
+            <Cpu className="w-4 h-4 text-blue-600" />
           </div>
-          <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-            <AlertTriangle className="w-6 h-6" />
-          </div>
+          <p className="text-2xl font-extrabold text-slate-900">Random Forest</p>
+          <p className="text-xs text-slate-500 font-medium">Selected over DT, LogReg, SVM</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg Model Agreement</p>
-            <p className="text-3xl font-extrabold text-emerald-600 mt-1">{avgAgreement}%</p>
-            <p className="text-xs text-slate-500 mt-1">Cross-algorithm consensus</p>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider">Decision Cutoff</span>
+            <Target className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
+          <p className="text-2xl font-extrabold text-slate-900">{THRESHOLD_TUNING_DATA.chosen_threshold}</p>
+          <p className="text-xs text-slate-500 font-medium">Tuned from 0.50 (Recall: 95.5%)</p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Primary Model Reference</p>
-            <p className="text-lg font-bold text-slate-900 mt-1">Random Forest</p>
-            <p className="text-xs text-cyan-600 font-semibold mt-1">ROC-AUC: 0.764 (Tuned @ 0.42)</p>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider">System Status</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
-            <FileText className="w-6 h-6" />
-          </div>
+          <p className="text-2xl font-extrabold text-emerald-600">API Operational</p>
+          <p className="text-xs text-slate-500 font-medium">FastAPI Endpoint Active</p>
         </div>
       </div>
 
-      {/* Recent Assessments Section */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+      {/* Overview Grid: Target Distribution + Deployed Model Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Dataset Distribution Card */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Recent Patient Assessments</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Click any row to open the complete clinical report card</p>
+            <h3 className="text-base font-bold text-slate-900">Dataset Target Class Balance</h3>
+            <p className="text-xs text-slate-500">Distribution of 400 patient records in reference dataset</p>
           </div>
-          <button
-            onClick={loadData}
-            className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
-            title="Refresh list"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+
+          <div className="h-48 flex items-center justify-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={EDA_INSIGHTS.target_distribution}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={4}
+                  label={({ name, percentage }) => `${name.split(' ')[0]}: ${percentage}%`}
+                >
+                  {EDA_INSIGHTS.target_distribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: any) => [`${value} Patients`, 'Count']} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-xs pt-2 border-t border-slate-100">
+            <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+              <span className="font-bold text-emerald-900 block">No Disease (0)</span>
+              <span className="text-lg font-black text-emerald-700">178 patients</span>
+              <span className="block text-[10px] text-emerald-600 mt-0.5">44.5% of dataset</span>
+            </div>
+            <div className="bg-red-50 p-3 rounded-xl border border-red-200">
+              <span className="font-bold text-red-900 block">Heart Disease (1)</span>
+              <span className="text-lg font-black text-red-700">222 patients</span>
+              <span className="block text-[10px] text-red-600 mt-0.5">55.5% of dataset</span>
+            </div>
+          </div>
         </div>
 
-        {loading ? (
-          <div className="p-12 text-center text-slate-400 font-medium">Loading patient assessments...</div>
-        ) : assessments.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">
-            <p className="font-semibold text-base">No patient assessments found in history.</p>
-            <p className="text-xs text-slate-400 mt-1">Click "New Patient Assessment" above to run your first diagnosis.</p>
+        {/* Deployed Model Performance Summary Card */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Deployed Model Metrics</h3>
+              <p className="text-xs text-slate-500">Test set evaluation (80 held-out patients)</p>
+            </div>
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
+              Random Forest
+            </span>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
-                <tr>
-                  <th className="py-3.5 px-6">Patient Ref</th>
-                  <th className="py-3.5 px-6">Timestamp</th>
-                  <th className="py-3.5 px-6">Final Verdict</th>
-                  <th className="py-3.5 px-6">Risk Tier</th>
-                  <th className="py-3.5 px-6">Agreement</th>
-                  <th className="py-3.5 px-6 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {assessments.slice(0, 8).map((a) => (
-                  <tr
-                    key={a.id}
-                    onClick={() => onSelectAssessment(a.id)}
-                    className="hover:bg-slate-50 cursor-pointer transition-colors"
-                  >
-                    <td className="py-4 px-6 font-bold text-slate-900">{a.patient_ref}</td>
-                    <td className="py-4 px-6 text-xs text-slate-500">
-                      {new Date(a.timestamp).toLocaleString()}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`font-bold ${
-                          a.final_label === 'Disease Likely' ? 'text-red-600' : 'text-emerald-600'
-                        }`}
-                      >
-                        {a.final_label}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">{getRiskBadge(a.risk_tier)}</td>
-                    <td className="py-4 px-6 font-semibold">
-                      {Math.round((a.agreement_ratio || 0.75) * 100)}%
-                      {a.validator_flag === 'review_recommended' && (
-                        <span className="ml-2 text-xs text-red-500 font-bold">⚠️ Warning</span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6 text-right">
-                      <span className="inline-flex items-center space-x-1 text-cyan-600 font-semibold text-xs hover:underline">
-                        <span>Report Card</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">ROC-AUC Score</span>
+              <span className="text-2xl font-black text-slate-900">{(rfMetrics.rocAuc * 100).toFixed(1)}%</span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">Highest across models</span>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Test Accuracy</span>
+              <span className="text-2xl font-black text-slate-900">{(rfMetrics.accuracy * 100).toFixed(1)}%</span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">Default threshold 0.50</span>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Tuned Sensitivity</span>
+              <span className="text-2xl font-black text-emerald-600">{(THRESHOLD_TUNING_DATA.metrics_at_threshold.recall * 100).toFixed(1)}%</span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">Recall at 0.42 cutoff</span>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">F1-Score</span>
+              <span className="text-2xl font-black text-slate-900">{(rfMetrics.f1Score * 100).toFixed(1)}%</span>
+              <span className="text-[10px] text-slate-500 block mt-0.5">Balanced metric</span>
+            </div>
           </div>
-        )}
+
+          <div className="p-3.5 bg-blue-50/80 rounded-xl border border-blue-200 text-xs text-slate-700">
+            <strong className="text-blue-900 font-bold block mb-1">Model Selection Rationale:</strong>
+            Random Forest was selected over Decision Tree, Logistic Regression, and SVM due to its superior ROC-AUC score (0.764) and balanced performance across recall and specificity.
+          </div>
+        </div>
       </div>
     </div>
   );

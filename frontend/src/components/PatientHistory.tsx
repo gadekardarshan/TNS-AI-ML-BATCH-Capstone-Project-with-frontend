@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Filter, Download, ArrowRight, RefreshCw, FileText } from 'lucide-react';
+import { Search, Filter, Download, ArrowRight, RefreshCw } from 'lucide-react';
 import { fetchPatientsList, fetchPatientAssessment, downloadReportPdf } from '../api/client';
 import { AssessmentRecord } from '../types';
 
@@ -42,7 +42,7 @@ export const PatientHistory: React.FC<PatientHistoryProps> = ({ onSelectAssessme
       const fullDetail = await fetchPatientAssessment(id);
       await downloadReportPdf(fullDetail);
     } catch (err) {
-      alert('Failed to download PDF for this assessment.');
+      alert('Failed to download PDF report.');
     }
   };
 
@@ -63,7 +63,7 @@ export const PatientHistory: React.FC<PatientHistoryProps> = ({ onSelectAssessme
 
   return (
     <div className="space-y-6">
-      {/* Search & Filter Controls */}
+      {/* Header & Filter Controls */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full">
           <Search className="w-5 h-5 absolute left-3.5 top-3 text-slate-400" />
@@ -102,14 +102,14 @@ export const PatientHistory: React.FC<PatientHistoryProps> = ({ onSelectAssessme
         </div>
       </div>
 
-      {/* Patient Assessments Table */}
+      {/* Assessment History Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-slate-900">Archived Clinical Patient Assessments ({total})</h3>
+          <h3 className="text-base font-bold text-slate-900">Assessment Logs ({total})</h3>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-slate-400 font-medium">Loading history records...</div>
+          <div className="p-12 text-center text-slate-400 font-medium">Loading patient assessment history...</div>
         ) : assessments.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
             <p className="font-semibold text-base">No matching patient records found.</p>
@@ -121,13 +121,12 @@ export const PatientHistory: React.FC<PatientHistoryProps> = ({ onSelectAssessme
                 <tr>
                   <th className="py-3.5 px-6">Patient Ref</th>
                   <th className="py-3.5 px-6">Timestamp</th>
-                  <th className="py-3.5 px-6">Final Verdict</th>
+                  <th className="py-3.5 px-6">Prediction Verdict</th>
                   <th className="py-3.5 px-6">Risk Tier</th>
-                  <th className="py-3.5 px-6">Agreement</th>
                   <th className="py-3.5 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 font-medium">
                 {assessments.map((a) => (
                   <tr
                     key={a.id}
@@ -148,12 +147,6 @@ export const PatientHistory: React.FC<PatientHistoryProps> = ({ onSelectAssessme
                       </span>
                     </td>
                     <td className="py-4 px-6">{getRiskBadge(a.risk_tier)}</td>
-                    <td className="py-4 px-6 font-semibold">
-                      {Math.round((a.agreement_ratio || 0.75) * 100)}%
-                      {a.validator_flag === 'review_recommended' && (
-                        <span className="ml-2 text-xs text-red-500 font-bold">⚠️ Disagreement</span>
-                      )}
-                    </td>
                     <td className="py-4 px-6 text-right space-x-2">
                       <button
                         onClick={(e) => handleDownloadPdfDirect(e, a.id)}
@@ -164,7 +157,7 @@ export const PatientHistory: React.FC<PatientHistoryProps> = ({ onSelectAssessme
                         <span>PDF</span>
                       </button>
                       <span className="inline-flex items-center space-x-1 text-cyan-600 font-semibold text-xs hover:underline">
-                        <span>Report</span>
+                        <span>Detail</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </span>
                     </td>
