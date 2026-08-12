@@ -213,8 +213,8 @@ def predict(patient: PatientData):
 def predict_ensemble(patient: PatientData, request: Request, db: Session = Depends(get_db)):
     start_time = time.time()
     data_dict = patient.dict()
-    custom_ref = data_dict.pop("patient_ref", None)
-    patient_name = data_dict.pop("patient_name", "John Doe")
+    custom_ref = data_dict.get("patient_ref")
+    patient_name = data_dict.get("patient_name") or "John Doe"
     patient_ref = custom_ref if custom_ref else f"PAT-{uuid.uuid4().hex[:6].upper()}"
 
     row_unscaled = pd.DataFrame([data_dict])[feature_names]
@@ -286,6 +286,7 @@ def predict_ensemble(patient: PatientData, request: Request, db: Session = Depen
     new_assessment = Assessment(
         id=response_payload["assessment_id"],
         patient_ref=patient_ref,
+        patient_name=patient_name,
         input_summary=json.dumps(data_dict),
         model_results=json.dumps(model_results),
         consensus=json.dumps(consensus),
@@ -391,9 +392,13 @@ def get_patient_pdf_by_id(assessment_id: str, db: Session = Depends(get_db)):
     if not record:
         raise HTTPException(status_code=404, detail="Assessment record not found")
 
+    input_summary_dict = json.loads(record.input_summary)
+    patient_name = getattr(record, "patient_name", None) or input_summary_dict.get("patient_name") or "John Doe"
+
     payload = {
+        "patient_name": patient_name,
         "patient_ref": record.patient_ref,
-        "input_summary": json.loads(record.input_summary),
+        "input_summary": input_summary_dict,
         "model_results": json.loads(record.model_results),
         "consensus": json.loads(record.consensus),
         "doctor_notes": record.doctor_notes or "",

@@ -37,6 +37,7 @@ class Assessment(Base):
 
     id = Column(String, primary_key=True, index=True)
     patient_ref = Column(String, index=True, nullable=False)
+    patient_name = Column(String, nullable=True, default="John Doe")
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)
     input_summary = Column(Text, nullable=False)  # JSON string
     model_results = Column(Text, nullable=False)  # JSON string
@@ -45,9 +46,21 @@ class Assessment(Base):
     created_by_email = Column(String, nullable=True)
 
 
+from sqlalchemy import create_engine, Column, String, Integer, DateTime, Text, Float, text
+
 def init_db():
     """Initializes tables and seeds default doctor account if not present."""
     Base.metadata.create_all(bind=engine)
+
+    # Migrate sqlite table if patient_name column is missing
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE assessments ADD COLUMN patient_name VARCHAR DEFAULT 'John Doe'"))
+            conn.commit()
+            print("[DB] Migrated assessments table with patient_name column.")
+        except Exception:
+            pass
+
     db = SessionLocal()
     try:
         default_email = "doctor@hospital.org"
